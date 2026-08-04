@@ -58,6 +58,9 @@ input,textarea{font-family:inherit;}
 .main-scroll{flex:1; overflow-y:auto; padding:26px 34px 34px 34px;}
 .topline{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;}
 .topline .date{font-size:12.5px; color:var(--ink-faint); font-weight:500;}
+.topline-right{display:flex; align-items:center; gap:14px;}
+.clean-session-btn{font-size:11px; font-weight:700; color:var(--ink-faint); background:rgba(33,31,48,0.05); padding:6px 12px; border-radius:8px;}
+.clean-session-btn:hover{background:rgba(233,191,199,0.35); color:var(--red);}
 
 .capture-bar{display:flex; align-items:center; gap:12px; background:var(--glass-fill-strong); border:1px solid var(--glass-border); border-radius:20px; padding:6px 8px 6px 20px; box-shadow:var(--shadow-e1); margin-bottom:22px;}
 .capture-bar svg{width:17px; height:17px; color:var(--periwinkle); flex-shrink:0;}
@@ -262,7 +265,10 @@ input,textarea{font-family:inherit;}
     <div class="main-scroll">
       <div class="topline">
         <span class="micro">Executive OS · Repsol CAU‑USA</span>
-        <span class="date" id="headerDate"></span>
+        <div class="topline-right">
+          <span class="date" id="headerDate"></span>
+          <button class="clean-session-btn" onclick="cleanSession()" title="Clear Queue, Today, Done, activity and mission. Pending, Someday, Notes, Decisions and History are kept.">Clean Session</button>
+        </div>
       </div>
 
       <div class="capture-bar">
@@ -965,6 +971,23 @@ document.getElementById('closeOutBtn').addEventListener('click', () => {
   document.getElementById('closeOutOverlay').classList.add('show');
 });
 document.getElementById('closeOutOverlay').addEventListener('click', e => { if(e.target.id==='closeOutOverlay') e.currentTarget.classList.remove('show'); });
+
+/* ================= Clean Session ================= */
+function cleanSession(){
+  const openCount = items.filter(i=>i.status==='queue'||i.status==='today'||i.status==='done').length;
+  const msg = openCount
+    ? `Clear Queue, Today, and Done (${openCount} item${openCount===1?'':'s'})? Pending, Someday, Notes, Decisions and History stay untouched. This can be undone right after.`
+    : `Clear the active session? Pending, Someday, Notes, Decisions and History stay untouched.`;
+  if(!confirm(msg)) return;
+  snapshot();
+  state.items = items.filter(i => i.status==='pending' || i.status==='someday');
+  state.activity = [];
+  state.mission = null;
+  expandedId = null;
+  saveState();
+  showToast('Session cleared');
+  renderAll();
+}
 
 /* ================= Export / Import ================= */
 function exportData(){
